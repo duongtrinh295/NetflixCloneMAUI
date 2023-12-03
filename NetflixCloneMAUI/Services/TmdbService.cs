@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NetflixCloneMAUI.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Json;
@@ -22,11 +23,22 @@ namespace NetflixCloneMAUI.Services
         }    
         private HttpClient HttpClient => _httpClientFactory.CreateClient(TmdbHttpClientName);
 
-        public async Task<IEnumerable<Result>> GetTrendingAsync()
-        {
-            var trendingMoviesCollection = await HttpClient.GetFromJsonAsync<Movie>($"{TmdbUrls.Trending}&api_key={ApiKey}");
+        public async Task<IEnumerable<Medias>> GetTrendingAsync() =>
+           await GetMediasAsync(TmdbUrls.Trending);
 
-            return trendingMoviesCollection.results;
+        public async Task<IEnumerable<Medias>> GetTopRatedAsync() =>
+            await GetMediasAsync(TmdbUrls.TopRated);
+        public async Task<IEnumerable<Medias>> GetNetflixOriginalAsync() =>
+            await GetMediasAsync(TmdbUrls.NetflixOriginals);
+        public async Task<IEnumerable<Medias>> GetActionAsync() =>
+            await GetMediasAsync(TmdbUrls.Action);
+
+
+        private async Task<IEnumerable<Medias>> GetMediasAsync(string url)
+        {
+            var trendingMoviesCollection = await HttpClient.GetFromJsonAsync<Movie>($"{url}&api_key={ApiKey}");
+            return trendingMoviesCollection.results
+                    .Select(r => r.ToMediaObject());
         }
 
     }
@@ -70,17 +82,17 @@ namespace NetflixCloneMAUI.Services
         public string ThumbnailUrl => $"https://image.tmdb.org/t/p/original/{ThumbnailPath}";
         public string DisplayTitle => title ?? name ?? original_title ?? original_name;
 
-        public Media ToMediaObject() =>
+        public Medias ToMediaObject() =>
             new()
             {
-                //Id = id,
-                //DisplayTitle = DisplayTitle,
-                //MediaType = media_type,
-                //Overview = overview,
-                //ReleaseDate = release_date,
-                //Thumbnail = Thumbnail,
-                //ThumbnailSmall = ThumbnailSmall,
-                //ThumbnailUrl = ThumbnailUrl
+                Id = id,
+                DisplayTitle = DisplayTitle,
+                MediaType = media_type,
+                Overview = overview,
+                ReleaseDate = release_date,
+                Thumbnail = Thumbnail,
+                ThumbnailSmall = ThumbnailSmall,
+                ThumbnailUrl = ThumbnailUrl
             };
     }
 
